@@ -1,18 +1,26 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
-
-
+        import java.io.BufferedReader;
+        import java.io.IOException;
+        import java.io.InputStream;
+        import java.io.InputStreamReader;
+        import java.net.URL;
+        import java.net.URLConnection;
+        import java.util.*;
+        
 class DownloadPage {
 
     public static void main(String[] args) throws IOException {
-        URL url = new URL("https://coinmarketcap.com/");
+        String searchPerimeter = "<span class=\"h2 text-semi-bold details-panel-item--price__value\" data-currency-value>";
+
+        Map<String, Double> cryptoPrices = new LinkedHashMap<>();
+
+        findCrypto(searchPerimeter, cryptoPrices, "bitcoin"); // the name must match the name on the URL in coinmarketcap
+        System.out.println(cryptoPrices);
+    }
+
+    public static void findCrypto(String searchPerimeter, Map<String, Double> cryptoPrices, String cryptoName) throws IOException {
+        URL url = new URL("https://coinmarketcap.com/currencies/" + cryptoName + "/");
 
         // Get the input stream through URL Connection
         URLConnection con = url.openConnection();
@@ -28,31 +36,12 @@ class DownloadPage {
             test.add(line);
         }
 
-        Map<String, Double> cryptoPrices = new LinkedHashMap<>();
-
         for (String s : test) {
-            if (s.contains("<a href=\"/currencies/bitcoin/#markets\" class=\"price\" data-usd=")) {
+            if (s.contains(searchPerimeter)) {
                 double price = cutSB(s);
-                cryptoPrices.putIfAbsent("Bitcoin",price);
-            }
-            else if (s.contains("<a href=\"/currencies/ethereum/#markets\" class=\"price\" data-usd=")) {
-                double price = cutSB(s);
-                cryptoPrices.putIfAbsent("Etherium",price);
-            }
-            else if (s.contains("<a href=\"/currencies/ripple/#markets\" class=\"price\" data-usd=")) {
-                double price = cutSB(s);
-                cryptoPrices.putIfAbsent("Ripple",price);
-            }
-            else if (s.contains("<a href=\"/currencies/bitcoin-cash/#markets\" class=\"price\" data-usd=")) {
-                double price = cutSB(s);
-                cryptoPrices.putIfAbsent("Bitcoin Cash",price);
-            }
-            else if (s.contains("<a href=\"/currencies/litecoin/#markets\" class=\"price\" data-usd=")) {
-                double price = cutSB(s);
-                cryptoPrices.putIfAbsent("Litecoin",price);
+                cryptoPrices.putIfAbsent(cryptoName,price);
             }
         }
-        System.out.println(cryptoPrices);
     }
 
     public static double cutSB(String s) {
@@ -61,7 +50,7 @@ class DownloadPage {
         int indexToCutAt = 0;
         for (int i = 0; i < sb.length(); i++) {
             if(sb.charAt(i)=='>') {
-                indexToCutAt = i+1;
+                indexToCutAt = i;
                 break;
             }
         }
